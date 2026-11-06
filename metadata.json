@@ -1,0 +1,6 @@
+{
+  "name": "واحد تعليم - Wahed Taleem",
+  "description": "منصة تعليمية عربية احترافية ومجانية بالكامل تقدم مسارات تعليمية شاملة في البرمجة، والذكاء الاصطناعي، والعلوم، والرياضيات مع مساعد المعلم الذكي والشهادات الرقمية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
