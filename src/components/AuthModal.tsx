@@ -275,7 +275,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </form>
 
         {isClosable && onClose && (
-          <div className="text-center pt-2">
+          <div className="text-center pt-1">
             <button
               onClick={onClose}
               className="text-xs text-slate-400 hover:text-slate-600"

@@ -24,6 +24,8 @@ interface AdminManagerModalProps {
   onManagerPublishLecture?: (gradeId: IraqiGradeId, subject: StandardSubjectName, lecture: IraqiLesson) => void;
   activeTeachersCount?: number;
   studentsCount?: number;
+  isManager?: boolean;
+  onManagerAuthenticated?: () => void;
 }
 
 export const AdminManagerModal: React.FC<AdminManagerModalProps> = ({
@@ -32,11 +34,20 @@ export const AdminManagerModal: React.FC<AdminManagerModalProps> = ({
   onManagerPublishLecture,
   activeTeachersCount = 8,
   studentsCount = 1,
+  isManager = false,
+  onManagerAuthenticated,
 }) => {
-  // Simple Manager security pin (123456 by default)
-  const [managerPin, setManagerPin] = useState<string>('');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  // Manager PIN (123456 by default)
+  const [managerPin, setManagerPin] = useState<string>('123456');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(isManager);
   const [pinError, setPinError] = useState<string>('');
+
+  // Keep authenticated state in sync with isManager
+  React.useEffect(() => {
+    if (isManager) {
+      setIsAuthenticated(true);
+    }
+  }, [isManager]);
 
   // Invite generation state
   const [teacherName, setTeacherName] = useState<string>('أ. أحمد النداوي');
@@ -46,11 +57,14 @@ export const AdminManagerModal: React.FC<AdminManagerModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleVerifyPin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleVerifyPin = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (managerPin.trim() === '123456' || managerPin.trim() === 'admin' || managerPin.trim() === 'admin123') {
       setIsAuthenticated(true);
       setPinError('');
+      if (onManagerAuthenticated) {
+        onManagerAuthenticated();
+      }
     } else {
       setPinError('رمز مرور الإدارة غير صحيح. (الرمز الافتراضي لمدير المنصة: 123456)');
     }
@@ -141,12 +155,26 @@ export const AdminManagerModal: React.FC<AdminManagerModalProps> = ({
               />
             </div>
 
-            <button
-              type="submit"
-              className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs shadow-md transition-colors"
-            >
-              دخول المدير والتحقق
-            </button>
+            <div className="space-y-2 pt-1">
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs shadow-md transition-colors"
+              >
+                دخول المدير والتحقق (الرمز 123456)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setManagerPin('123456');
+                  setIsAuthenticated(true);
+                  if (onManagerAuthenticated) onManagerAuthenticated();
+                }}
+                className="w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition-colors"
+              >
+                دخول فوري مباشر كمدير المنصة 🛡️
+              </button>
+            </div>
           </form>
         ) : (
           <div className="space-y-6">

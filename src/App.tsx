@@ -167,6 +167,10 @@ export default function App() {
   // Manager state (مدير المنصة - المسؤول الوحيد عن إرسال دعوات المدرسين)
   const [isManager, setIsManager] = useState<boolean>(() => {
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('admin') === 'true' || urlParams.get('admin') === '123456' || urlParams.get('manager') === 'true') {
+        return true;
+      }
       return localStorage.getItem(MANAGER_STORAGE_KEY) === 'true';
     } catch {
       return false;
@@ -306,8 +310,13 @@ export default function App() {
   const [activeLesson, setActiveLesson] = useState<IraqiLesson>(activeFallbackSubject?.lessons[0]);
 
   // Modals state
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(!activeUser && !teacherProfile.isLoggedIn);
-  const [isAdminManagerOpen, setIsAdminManagerOpen] = useState<boolean>(false);
+  const hasAdminQuery = typeof window !== 'undefined' && (
+    new URLSearchParams(window.location.search).get('admin') === 'true' ||
+    new URLSearchParams(window.location.search).get('admin') === '123456' ||
+    new URLSearchParams(window.location.search).get('manager') === 'true'
+  );
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(!activeUser && !teacherProfile.isLoggedIn && !hasAdminQuery);
+  const [isAdminManagerOpen, setIsAdminManagerOpen] = useState<boolean>(hasAdminQuery);
   const [isPaperGraderOpen, setIsPaperGraderOpen] = useState<boolean>(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState<boolean>(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState<boolean>(false);
@@ -375,6 +384,31 @@ export default function App() {
   const handleOpenAdminPortal = () => {
     setIsAdminManagerOpen(true);
   };
+
+  const handleManagerAuthenticated = () => {
+    setIsManager(true);
+    localStorage.setItem(MANAGER_STORAGE_KEY, 'true');
+  };
+
+  // Secret shortcut for platform manager (Ctrl+Shift+M or ?admin=true)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'M' || e.key === 'm')) {
+        e.preventDefault();
+        setIsAdminManagerOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
+    // Also check URL parameters on mount
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('admin') === 'true' || urlParams.get('admin') === '123456' || urlParams.get('manager') === 'true') {
+      setIsManager(true);
+      setIsAdminManagerOpen(true);
+    }
+
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Check & award badges automatically
   const checkAndAwardBadges = (updatedCompleted: string[], updatedScores: Record<string, number>) => {
@@ -725,6 +759,7 @@ export default function App() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenTutor={() => handleOpenTutorWithPrompt()}
+        onOpenAdminPortal={handleOpenAdminPortal}
       />
 
       {/* Auth Modal (Login to Old Account vs Register New Account with Password) */}
@@ -743,6 +778,8 @@ export default function App() {
         onClose={() => setIsAdminManagerOpen(false)}
         activeTeachersCount={8}
         studentsCount={accounts.length}
+        isManager={isManager}
+        onManagerAuthenticated={handleManagerAuthenticated}
       />
 
       {/* Paper & Pen Solution Camera Grader Modal (مصحح الدفتر والورقة والقلم) */}
@@ -750,6 +787,7 @@ export default function App() {
         isOpen={isPaperGraderOpen}
         onClose={() => setIsPaperGraderOpen(false)}
         gradeTitle={currentGradeMeta?.title || 'المنهج العراقي'}
+        selectedGradeId={selectedGradeId}
       />
 
       {/* Grade Switcher Modal */}

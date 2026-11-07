@@ -3,9 +3,10 @@ import React from 'react';
 interface FooterProps {
   onSelectTab: (tab: 'courses' | 'flashcards' | 'ai-quiz' | 'dashboard') => void;
   onOpenTutor: () => void;
+  onOpenAdminPortal?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectTab, onOpenTutor }) => {
+export const Footer: React.FC<FooterProps> = ({ onSelectTab, onOpenTutor, onOpenAdminPortal }) => {
   return (
     <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 transition-colors mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -62,9 +63,25 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab, onOpenTutor }) => {
 
         </div>
 
-        {/* Bottom copyright line */}
-        <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between text-xs text-slate-400">
-          <p>© 2026 واحد تعليم (Wahed Taleem) - المنهج العراقي. مهد العلم والمعرفة.</p>
+        {/* Bottom copyright line - hidden from students */}
+        <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-3">
+          <p 
+            onClick={() => {
+              if (onOpenAdminPortal) {
+                const count = Number((window as any).__footerClickCount || 0) + 1;
+                (window as any).__footerClickCount = count;
+                if (count >= 3) {
+                  (window as any).__footerClickCount = 0;
+                  onOpenAdminPortal();
+                }
+                setTimeout(() => { (window as any).__footerClickCount = 0; }, 2000);
+              }
+            }}
+            className="cursor-default select-none"
+          >
+            © 2026 واحد تعليم (Wahed Taleem) - المنهج العراقي. مهد العلم والمعرفة.
+          </p>
+          
           <p>كل التوفيق والنجاح الباهر لجميع طلبة العراق في الامتحانات الوزارية.</p>
         </div>
       </div>

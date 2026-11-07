@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { UserProgress, IraqiSubject } from '../types';
 import { IRAQI_GRADES } from '../data/iraqiCurriculumData';
 import { GamificationBadges } from './GamificationBadges';
+import { GradeAnalyticsDashboard } from './GradeAnalyticsDashboard';
 import { 
   Award, 
   Printer, 
@@ -12,7 +13,8 @@ import {
   Edit3, 
   ShieldCheck, 
   Search,
-  ExternalLink
+  ExternalLink,
+  BarChart3
 } from 'lucide-react';
 
 interface StudentGradesRecordProps {
@@ -34,6 +36,8 @@ export const StudentGradesRecord: React.FC<StudentGradesRecordProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [nameInput, setNameInput] = useState<string>(userProgress.studentName);
+  const [recordTab, setRecordTab] = useState<'analytics' | 'exams'>('analytics');
+
 
   const gradeMeta = IRAQI_GRADES.find(g => g.id === userProgress.gradeId) || IRAQI_GRADES[0];
 
@@ -140,11 +144,49 @@ export const StudentGradesRecord: React.FC<StudentGradesRecordProps> = ({
         streakDays={userProgress.streakDays}
       />
 
+      {/* Subtab Switcher: Analytics vs Detailed Exams Record */}
+      <div className="flex items-center gap-2 bg-slate-200/80 dark:bg-slate-800/80 p-1.5 rounded-2xl w-fit">
+        <button
+          onClick={() => setRecordTab('analytics')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            recordTab === 'analytics'
+              ? 'bg-emerald-700 text-white shadow-md'
+              : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" />
+          <span>لوحة التحليلات والمقارنة بمتوسط طلاب الصف</span>
+        </button>
+
+        <button
+          onClick={() => setRecordTab('exams')}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            recordTab === 'exams'
+              ? 'bg-emerald-700 text-white shadow-md'
+              : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Award className="w-4 h-4" />
+          <span>سجل الامتحانات والشهادات ونسب الإنجاز</span>
+        </button>
+      </div>
+
+      {/* Render the Analytical Statistical Comparison Dashboard */}
+      {recordTab === 'analytics' && (
+        <GradeAnalyticsDashboard
+          userProgress={userProgress}
+          subjects={subjects}
+          selectedGradeId={userProgress.gradeId}
+        />
+      )}
+
       {/* Subjects Progress & Completion Rates */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
-        <h3 className="text-base font-bold text-slate-900 dark:text-white">
-          نسبة إنجاز المواد الدراسية لـ ({gradeMeta.title})
-        </h3>
+      {recordTab === 'exams' && (
+        <>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              نسبة إنجاز المواد الدراسية لـ ({gradeMeta.title})
+            </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {subjects.map((sub) => {
@@ -246,6 +288,8 @@ export const StudentGradesRecord: React.FC<StudentGradesRecordProps> = ({
           </div>
         )}
       </div>
+      </>
+      )}
 
     </div>
   );
